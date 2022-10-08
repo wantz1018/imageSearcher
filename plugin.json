@@ -1,0 +1,16 @@
+{
+    "main": "index.html",
+    "logo": "logo.png",
+    "preload": "preload.js",
+    "features": [{
+        "code": "搜图",
+        "explain": "hello world",
+        "cmds": [{
+            "type": "regex",
+            "label": "搜图",
+            "match": "/^搜图/i",
+            "minLength": 1,
+            "maxLength": 20
+        }]
+    }]
+}
