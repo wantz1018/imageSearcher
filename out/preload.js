@@ -31,13 +31,18 @@ function search(keyword) {
 }
 
 utools.onPluginEnter(({ code, type, payload }) => {
+    document.querySelector('.info').style.display = ''
+    document.querySelector('table').innerHTML = ''
     const keyword = payload;
     if (keyword === null || keyword == "") {
         return
     }
     var word = '';
     utools.setSubInput(({ text }) => {
-        console.log(text);
+        if (text == null || text == "") {
+            document.querySelector('.info').style.display = '';
+            document.querySelector('table').innerHTML = ''
+        }
         word = text;
     }, placeholder = '输入关键字搜索图片')
     window.addEventListener('keydown', (e) => {
@@ -45,7 +50,6 @@ utools.onPluginEnter(({ code, type, payload }) => {
             if (word.length > 0) {
                 document.querySelector('.info').style.display = 'none';
                 search(word);
-                utools.subInputBlur()
             } else {
                 document.querySelector('.info').style.display = ''
             }
