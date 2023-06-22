@@ -1,21 +1,234 @@
+<!--
+ * @Description: 
+ * @Author: Wantz
+ * @Email: wantz@foxmail.com
+ * @Date: 2023-06-21 16:35:30
+ * @LastEditTime: 2023-06-22 08:49:44
+-->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="spark-md5.min.js"></script>
     <link rel="stylesheet" href="style.css">
-    <script src="index.js"></script>
 </head>
 
 <body>
-    <div class="info">
-        输入关键字按下回车即可搜索，点击图片可下载
+    <div id="app">
+        <div class="search_area">
+            <table>
+                <tr>
+                    <td>
+                        <el-select v-model="engine" placeholder="选择搜索引擎">
+                            <el-option label="必应" value="bing"></el-option>
+                            <el-option label="百度" value="baidu"></el-option>
+                        </el-select>
+                    </td>
+                    <td>
+                        <el-input 
+                        v-model="keyword" 
+                        placeholder="输入关键词"
+                        @keyup.enter.native="search(this.keyword)"
+                        clearable
+                        props="ib"></el-input>
+                    </td>
+                    <td>
+                        <el-button type="primary" icon="Search" @click="search(this.keyword)">搜索</el-button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="result_area">
+            <table id="result_table">
+                <tr v-for="(result, index) in result_list" :key="index">
+                    <td class="img_td">
+                        <el-image class="img" style="width: 390px;" :src="result[0].imageUrl" :fit="contain"></el-image>
+                        <div class="tools">
+                            <el-col>
+                                <el-icon :size="30" title="下载图片" @click="download_image(result[0].imageUrl)">
+                                    <Download />
+                                </el-icon>
+                                <el-icon :size="30" title="复制图片到剪切板" @click="copy_image(result[0].imageUrl)">
+                                    <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" data-v-ea893728="">
+                                        <path fill="currentColor"
+                                            d="M768 832a128 128 0 0 1-128 128H192A128 128 0 0 1 64 832V384a128 128 0 0 1 128-128v64a64 64 0 0 0-64 64v448a64 64 0 0 0 64 64h448a64 64 0 0 0 64-64h64z">
+                                        </path>
+                                        <path fill="currentColor"
+                                            d="M384 128a64 64 0 0 0-64 64v448a64 64 0 0 0 64 64h448a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64H384zm0-64h448a128 128 0 0 1 128 128v448a128 128 0 0 1-128 128H384a128 128 0 0 1-128-128V192A128 128 0 0 1 384 64z">
+                                        </path>
+                                    </svg>
+                                </el-icon>
+                                <el-icon :size="30" title="复制图片链接" @click="copy_image_url(result[0].imageUrl)">
+                                    <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" data-v-ea893728="">
+                                        <path fill="currentColor"
+                                            d="M715.648 625.152 670.4 579.904l90.496-90.56c75.008-74.944 85.12-186.368 22.656-248.896-62.528-62.464-173.952-52.352-248.96 22.656L444.16 353.6l-45.248-45.248 90.496-90.496c100.032-99.968 251.968-110.08 339.456-22.656 87.488 87.488 77.312 239.424-22.656 339.456l-90.496 90.496zm-90.496 90.496-90.496 90.496C434.624 906.112 282.688 916.224 195.2 828.8c-87.488-87.488-77.312-239.424 22.656-339.456l90.496-90.496 45.248 45.248-90.496 90.56c-75.008 74.944-85.12 186.368-22.656 248.896 62.528 62.464 173.952 52.352 248.96-22.656l90.496-90.496 45.248 45.248zm0-362.048 45.248 45.248L398.848 670.4 353.6 625.152 625.152 353.6z">
+                                        </path>
+                                    </svg>
+                                </el-icon>
+                            </el-col>
+                        </div>
+                    </td>
+                    <td class="img_td">
+                        <el-image class="img" style="width: 390px;" :src="result[1].imageUrl" :fit="contain"></el-image>
+                        <div class="tools">
+                            <el-col>
+                                <el-icon :size="30" title="下载图片" @click="download_image(result[1].imageUrl)">
+                                    <Download />
+                                </el-icon>
+                                <el-icon :size="30" title="复制图片到剪切板" @click="copy_image(result[1].imageUrl)">
+                                    <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" data-v-ea893728="">
+                                        <path fill="currentColor"
+                                            d="M768 832a128 128 0 0 1-128 128H192A128 128 0 0 1 64 832V384a128 128 0 0 1 128-128v64a64 64 0 0 0-64 64v448a64 64 0 0 0 64 64h448a64 64 0 0 0 64-64h64z">
+                                        </path>
+                                        <path fill="currentColor"
+                                            d="M384 128a64 64 0 0 0-64 64v448a64 64 0 0 0 64 64h448a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64H384zm0-64h448a128 128 0 0 1 128 128v448a128 128 0 0 1-128 128H384a128 128 0 0 1-128-128V192A128 128 0 0 1 384 64z">
+                                        </path>
+                                    </svg>
+                                </el-icon>
+                                <el-icon :size="30" title="复制图片链接" @click="copy_image_url(result[1].imageUrl)">
+                                    <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" data-v-ea893728="">
+                                        <path fill="currentColor"
+                                            d="M715.648 625.152 670.4 579.904l90.496-90.56c75.008-74.944 85.12-186.368 22.656-248.896-62.528-62.464-173.952-52.352-248.96 22.656L444.16 353.6l-45.248-45.248 90.496-90.496c100.032-99.968 251.968-110.08 339.456-22.656 87.488 87.488 77.312 239.424-22.656 339.456l-90.496 90.496zm-90.496 90.496-90.496 90.496C434.624 906.112 282.688 916.224 195.2 828.8c-87.488-87.488-77.312-239.424 22.656-339.456l90.496-90.496 45.248 45.248-90.496 90.56c-75.008 74.944-85.12 186.368-22.656 248.896 62.528 62.464 173.952 52.352 248.96-22.656l90.496-90.496 45.248 45.248zm0-362.048 45.248 45.248L398.848 670.4 353.6 625.152 625.152 353.6z">
+                                        </path>
+                                    </svg>
+                                </el-icon>
+                            </el-col>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </div>
-    <table>
-    </table>
 </body>
+<script>
+    const { createApp } = Vue
+    let _this = this.ElementPlus;
+    const app = createApp({
+        data() {
+            return {
+                engine: 'bing',
+                keyword: '',
+                result_list: [],
+            }
+        },
+        methods: {
+            search: function (keyword) {
+                keyword = keyword.replace(' ', '+');
+                this.result_list = [];
+                if (this.engine == 'bing'){
+                    axios({
+                    method: 'GET',
+                    url: 'https://cn.bing.com/images/vsasync?q=' + keyword
+                }).then((response) => {
+                    for (let i=0; i<response.data.results.length; i++){
+                        if (i % 2 == 1){
+                            response.data.results[i-1].imageUrl = response.data.results[i-1].imageUrl.split('?')[0]
+                            response.data.results[i].imageUrl = response.data.results[i].imageUrl.split('?')[0]
+                            this.result_list.push([response.data.results[i-1], response.data.results[i]])
+                    }}
+                })} else if (this.engine == 'baidu'){
+                    axios({
+                        method: 'GET',
+                        url: 'https://image.baidu.com/search/acjson?tn=resultjson_com&word=' + keyword + '&queryWord=' + keyword + '&ie=utf-8&oe=utf-8&istype=2&pn=30'
+                    }).then((response)=>{
+                        for (let i=0; i<response.data.data.length; i++){
+                            if (i % 2 == 1){
+                                let img_1 = {'imageUrl': response.data.data[i-1]['middleURL'].split('?')[0]} ;
+                                let img_2 = {'imageUrl': response.data.data[i]['middleURL'].split('?')[0]}; 
+                                this.result_list.push([img_1, img_2])
+                                
+                            }
+                        }
+                        console.log(this.result_list);
+                    })
+                }
+                
+            },
+            get_image_name: function(image_url){
+                //这里使用图片url的md5值作为图片名称
+                const md5 = SparkMD5.hashBinary(image_url);
+                return md5;
+            },
+            download_image: function(image_url){
+                this.download(image_url, this.get_image_name(image_url))
+            },
+            copy_image: function (image_url){
+                let img = new Image()
+                img.setAttribute('crossOrigin', 'Anonymous')
+                img.onload = function(){
+                    let canvas = document.createElement('canvas')
+                    let context = canvas.getContext('2d')
+                    canvas.width = img.width
+                    canvas.height = img.height
+                    context.drawImage(img, 0, 0, img.width, img.height)
+                    canvas.toBlob((blob)=>{
+                        const clipboardItem = new ClipboardItem({'image/png': blob});
+                        navigator.clipboard.write([clipboardItem]);
+                    }, 'image/png')
+                }
+                img.src = image_url + '?v=' + Date.now()
+                _this.ElMessage({
+                    message: '图片已复制',
+                    type: 'success'
+                })
+                
+            },
+            copy_image_url: function (image_url){
+                if (navigator.clipboard) {
+                    // clipboard api 复制
+                    navigator.clipboard.writeText(image_url);
+                } else {
+                    var textarea = document.createElement('textarea');
+                    document.body.appendChild(textarea);
+                    // 隐藏此输入框
+                    textarea.style.position = 'fixed';
+                    textarea.style.clip = 'rect(0 0 0 0)';
+                    textarea.style.top = '10px';
+                    // 赋值
+                    textarea.value = image_url
+                    // 选中
+                    textarea.select();
+                    // 复制
+                    document.execCommand('copy', true);
+                    // 移除输入框
+                    document.body.removeChild(textarea);
+                }
+                _this.ElMessage({message:'图片链接已复制', type:'success'});
+            },
+            download: function (link, picName){
+                let img = new Image()
+                img.setAttribute('crossOrigin', 'Anonymous')
+                img.onload = function(){
+                    let canvas = document.createElement('canvas')
+                    let context = canvas.getContext('2d')
+                    canvas.width = img.width
+                    canvas.height = img.height
+                    context.drawImage(img, 0, 0, img.width, img.height)
+                    let url = canvas.toDataURL('images/png')
+                    let a = document.createElement('a')
+                    let event = new MouseEvent('click')
+                    a.download = picName || 'default.png'
+                    a.href = url
+                    a.dispatchEvent(event)
+                }
+                img.src = link + '?v=' + Date.now()
+            }
+        },
+    })
+    app.use(ElementPlus)
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.mount('#app')
+    window.app = app;
+</script>
 
 </html>
